@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!--    配置数据源 -> Spring-->
+
+    <!--    驼峰命名自动映射-->
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+
+    <typeAliases>
+        <package name="PutclubHelper.pojo"/>
+    </typeAliases>
+
+    <mappers>
+        <mapper class="PutclubHelper.dao.MaterialsMapper" />
+    </mappers>
+</configuration>
