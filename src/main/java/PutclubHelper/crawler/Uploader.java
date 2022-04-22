@@ -51,6 +51,7 @@ public class Uploader {
         try {
             String key = new FileKey().GetKeyByTime();
             uploadManager.put(filepath, key, token);
+            System.out.println(filepath + " upload success.");
             return key;
         } catch (QiniuException e) {
             System.out.println(e.response.toString());

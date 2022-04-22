@@ -16,6 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.*;
 
 
@@ -42,11 +43,14 @@ public class Crawler {
             this.xpathRules = new HashMap<>();
             addXPathRule("date", properties);
             addXPathRule("detail", properties);
-            addXPathRule("resource", properties);
+            addXPathRule("resource1", properties);
+            addXPathRule("resource2", properties);
             addXPathRule("title", properties);
             var uaReader = new UAReader(properties.getProperty("crawler.ua"));
             uaReader.Read();
-            this.client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
+            this.client = HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .connectTimeout(Duration.ofSeconds(10)).build();
             this.uploader = new Uploader();
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,6 +81,22 @@ public class Crawler {
         return "";
     }
 
+    private boolean getResource(String url, String filename) throws IOException {
+        File audio = new File(filename);
+        try(FileOutputStream fs = new FileOutputStream(audio)){
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(new URI(url))
+                    .GET().header("User-Agent", getRandomUA()).build();
+            HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            fs.write(response.body());
+            fs.flush();
+        } catch (Exception e) {
+            audio.delete();
+            return false;
+        }
+        return true;
+    }
+
     @Scheduled(cron = "0/30 * * * * ?")
     public void Craw() {
         String mainURL = mainURLPattern.replace("{type}", type.toString())
@@ -100,9 +120,17 @@ public class Crawler {
 
                     document = new JXDocument(detailPage);
                     List<Object> title = document.sel(xpathRules.get("title"));
-                    List<Object> resourceUrl = document.sel(xpathRules.get("resource"));
-                    if(title.size() > 0 && resourceUrl.size() > 0)
-                        System.out.printf("%s: %s", title.get(0), resourceUrl.get(0));
+                    List<Object> resourceUrl = document.sel(xpathRules.get("resource1"));
+                    if(resourceUrl.size() == 0)
+                        resourceUrl = document.sel(xpathRules.get("resource2"));
+                    if(title.size() > 0 && resourceUrl.size() > 0) {
+                        String filename = ((String)title.get(0)).replace(" ", "") + ".mp3";
+                        if(getResource((String)resourceUrl.get(0), filename)) {
+                            System.out.println("download audio success: " + filename);
+                            uploader.Upload(filename);
+                            (new File(filename)).delete();
+                        }
+                    }
                 }
                 else
                     break;

@@ -128,17 +128,26 @@
       <version>[7.7.0, 7.10.99]</version>
     </dependency>
 
-    <!--Quartz定时任务-->
+<!--    &lt;!&ndash;Quartz定时任务&ndash;&gt;-->
+<!--    <dependency>-->
+<!--      <groupId>org.quartz-scheduler</groupId>-->
+<!--      <artifactId>quartz</artifactId>-->
+<!--      <version>2.3.0</version>-->
+<!--    </dependency>-->
+<!--    <dependency>-->
+<!--      <groupId>org.slf4j</groupId>-->
+<!--      <artifactId>slf4j-simple</artifactId>-->
+<!--      <version>1.7.25</version>-->
+<!--      <scope>compile</scope>-->
+<!--    </dependency>-->
+
+    <!--tencent sdk-->
     <dependency>
-      <groupId>org.quartz-scheduler</groupId>
-      <artifactId>quartz</artifactId>
-      <version>2.3.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>1.7.25</version>
-      <scope>compile</scope>
+      <groupId>com.tencentcloudapi</groupId>
+      <artifactId>tencentcloud-sdk-java</artifactId>
+      <!-- go to https://search.maven.org/search?q=tencentcloud-sdk-java and get the latest version. -->
+      <!-- 请到https://search.maven.org/search?q=tencentcloud-sdk-java查询所有版本，最新版本如下 -->
+      <version>3.1.322</version>
     </dependency>
 
   </dependencies>
