@@ -1,10 +1,12 @@
 package PutclubHelper.crawler;
 
 import com.qiniu.common.QiniuException;
+import com.qiniu.http.Response;
 import com.qiniu.storage.Configuration;
 import com.qiniu.storage.Region;
 import com.qiniu.storage.UploadManager;
 import com.qiniu.util.Auth;
+import lombok.Data;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
@@ -14,8 +16,19 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
+@Data
+class UploadResult {
+    private String url;
+    private String key;
+    public UploadResult(String key, String url) {
+        this.key = key;
+        this.url = url;
+    }
+}
+
 public class Uploader {
     private String bucket;
+    private String domain;
     private String accessKey;
     private String secretKey;
     private final UploadManager uploadManager;
@@ -26,6 +39,7 @@ public class Uploader {
         try {
             Properties properties = PropertiesLoaderUtils.loadProperties(resource);
             bucket = properties.getProperty("qiniu.bucket");
+            domain = properties.getProperty("qiniu.domain");
             accessKey = properties.getProperty("qiniu.AccessKey");
             secretKey = properties.getProperty("qiniu.SecretKey");
         } catch (IOException e) {
@@ -47,15 +61,16 @@ public class Uploader {
         }
     }
 
-    public String Upload(String filepath) {
+    public UploadResult Upload(String filepath) {
         try {
             String key = new FileKey().GetKeyByTime();
             uploadManager.put(filepath, key, token);
-            System.out.println(filepath + " upload success.");
-            return key;
+            String url = domain + key;
+            System.out.println(filepath + " upload success. address: " + url);
+            return new UploadResult(key, url);
         } catch (QiniuException e) {
             System.out.println(e.response.toString());
         }
-        return "";
+        return null;
     }
 }

@@ -17,6 +17,9 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.7</maven.compiler.source>
     <maven.compiler.target>1.7</maven.compiler.target>
+    <!-- redis 版本 -->
+    <redis.version>2.9.0</redis.version>
+    <spring.redis.version>1.8.4.RELEASE</spring.redis.version>
   </properties>
 
   <dependencies>
@@ -27,6 +30,13 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+
+<!--    <dependency>-->
+<!--      <groupId>org.springframework</groupId>-->
+<!--      <artifactId>spring-test</artifactId>-->
+<!--      <scope>test</scope>-->
+<!--    </dependency>-->
+
     <!--数据库驱动-->
     <dependency>
       <groupId>mysql</groupId>
@@ -148,6 +158,17 @@
       <!-- go to https://search.maven.org/search?q=tencentcloud-sdk-java and get the latest version. -->
       <!-- 请到https://search.maven.org/search?q=tencentcloud-sdk-java查询所有版本，最新版本如下 -->
       <version>3.1.322</version>
+    </dependency>
+
+    <dependency>
+      <groupId>redis.clients</groupId>
+      <artifactId>jedis</artifactId>
+      <version>${redis.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.data</groupId>
+      <artifactId>spring-data-redis</artifactId>
+      <version>${spring.redis.version}</version>
     </dependency>
 
   </dependencies>

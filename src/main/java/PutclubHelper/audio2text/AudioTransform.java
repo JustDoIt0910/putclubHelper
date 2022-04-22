@@ -15,16 +15,18 @@ import java.util.Properties;
 
 public class AudioTransform {
     AsrClient client;
+    String callbackUrl;
 
     public AudioTransform() {
         try{
             Properties ps = PropertiesLoaderUtils.loadProperties(new ClassPathResource("tencent.properties"));
-            Credential cred = new Credential(ps.getProperty("tencent.secretId"), "tencent.secretKey");
+            Credential cred = new Credential(ps.getProperty("tencent.secretId"), ps.getProperty("tencent.secretKey"));
             HttpProfile httpProfile = new HttpProfile();
             httpProfile.setEndpoint("asr.tencentcloudapi.com");
             ClientProfile clientProfile = new ClientProfile();
             clientProfile.setHttpProfile(httpProfile);
             client = new AsrClient(cred, "", clientProfile);
+            callbackUrl = ps.getProperty("tencent.callbackUrl");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -37,6 +39,7 @@ public class AudioTransform {
         req.setResTextFormat(0L);
         req.setSourceType(0L);
         req.setUrl(audioUrl);
+        req.setCallbackUrl(callbackUrl);
         return client.CreateRecTask(req);
     }
 }

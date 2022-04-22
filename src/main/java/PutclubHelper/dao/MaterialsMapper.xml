@@ -9,7 +9,16 @@
     </select>
 
     <insert id="addMaterial" parameterType="PutclubHelper.pojo.Materials">
-        insert into putclubhelper.materials (title, date, type, audioSource, text)
-        values(#{title}, #{date}, #{type}, #{audioSource}, #{text})
+        insert into putclubhelper.materials (id, title, date, type, audioSource, text)
+        values(#{material.id},
+               #{material.title},
+               #{material.date},
+               #{material.type},
+               #{material.audioSource},
+               #{material.text})
     </insert>
+
+    <update id="updateMaterialText">
+        update putclubhelper.materials set text = #{text} where id = #{id}
+    </update>
 </mapper>

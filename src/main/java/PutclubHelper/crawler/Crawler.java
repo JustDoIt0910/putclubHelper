@@ -1,7 +1,12 @@
 package PutclubHelper.crawler;
 
+import PutclubHelper.audio2text.AudioTransform;
+import PutclubHelper.cache.RedisCacheManager;
 import PutclubHelper.dao.MaterialsMapper;
+import PutclubHelper.pojo.Materials;
+import PutclubHelper.utils.uuid.UUIDUtils;
 import cn.wanghaomiao.xpath.model.JXDocument;
+import com.tencentcloudapi.asr.v20190614.models.CreateRecTaskResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
@@ -30,11 +35,16 @@ public class Crawler {
     private Map<String, String> xpathRules;
     private String baseURL;
     private String mainURLPattern;
+    AudioTransform transformer;
     MaterialsMapper mapper;
+    RedisCacheManager redis;
 
     @Autowired
-    public Crawler(@Qualifier("materialsMapper") MaterialsMapper mapper) {
+    public Crawler(@Qualifier("materialsMapper") MaterialsMapper mapper,
+    @Qualifier("redisCache") RedisCacheManager redis) {
         this.mapper = mapper;
+        this.redis = redis;
+        this.transformer = new AudioTransform();
         Resource resource = new ClassPathResource("crawler.properties");
         try {
             Properties properties = PropertiesLoaderUtils.loadProperties(resource);
@@ -97,8 +107,9 @@ public class Crawler {
         return true;
     }
 
-    @Scheduled(cron = "0/30 * * * * ?")
+    @Scheduled(cron = "0/60 * * * * ?")
     public void Craw() {
+        System.out.println("updating.........");
         String mainURL = mainURLPattern.replace("{type}", type.toString())
                 .replace("{page}", "1");
         String mainPage = getPage(mainURL);
@@ -109,7 +120,8 @@ public class Crawler {
 
             Date now = new Date(System.currentTimeMillis());
             SimpleDateFormat format = new SimpleDateFormat("yyyy-M-d");
-            String today = format.format(now);
+            //String today = format.format(now);
+            String today = "2022-4-22";
             for(int i = 0; i < dates.size(); i++) {
                 String date = (String) dates.get(i);
                 //判断今日有无更新
@@ -127,8 +139,17 @@ public class Crawler {
                         String filename = ((String)title.get(0)).replace(" ", "") + ".mp3";
                         if(getResource((String)resourceUrl.get(0), filename)) {
                             System.out.println("download audio success: " + filename);
-                            uploader.Upload(filename);
-                            (new File(filename)).delete();
+                            UploadResult res = uploader.Upload(filename);
+                            boolean ok =  (new File(filename)).delete();
+
+                            String id = UUIDUtils.uuid();
+                            mapper.addMaterial(new Materials(id, filename,
+                                    new Date(System.currentTimeMillis()),
+                                    "", res.getUrl(), ""));
+                            CreateRecTaskResponse taskResponse =  transformer.post(res.getUrl());
+                            System.out.println("post send success, TaskId: " + taskResponse.getData().getTaskId());
+                            redis.set(String.valueOf(taskResponse.getData().getTaskId()), id);
+                            System.out.println(taskResponse.getData().getTaskId() + " -----> " + id);
                         }
                     }
                 }
