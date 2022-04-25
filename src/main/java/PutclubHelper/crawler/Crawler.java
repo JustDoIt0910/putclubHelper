@@ -23,6 +23,7 @@ import java.net.http.HttpResponse;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 //用于获取当天更新的材料
@@ -38,6 +39,10 @@ public class Crawler {
     AudioTransform transformer;
     MaterialsMapper mapper;
     RedisCacheManager redis;
+
+    private boolean updated = true;
+    private JXDocument document;
+    private final ReentrantLock lock = new ReentrantLock();
 
     @Autowired
     public Crawler(@Qualifier("materialsMapper") MaterialsMapper mapper,
@@ -107,21 +112,18 @@ public class Crawler {
         return true;
     }
 
-    @Scheduled(cron = "0/60 * * * * ?")
-    public void Craw() {
-        System.out.println("updating.........");
-        String mainURL = mainURLPattern.replace("{type}", type.toString())
-                .replace("{page}", "1");
-        String mainPage = getPage(mainURL);
-        JXDocument document = new JXDocument(mainPage);
+    @Scheduled(cron = "0 0/10 * * * ?")
+    public void CheckUpdate() {
+        lock.lock();
+        if(updated)
+            return;
         try {
             List<Object> detailUrls = document.sel(xpathRules.get("detail"));
             List<Object> dates = document.sel(xpathRules.get("date"));
 
             Date now = new Date(System.currentTimeMillis());
             SimpleDateFormat format = new SimpleDateFormat("yyyy-M-d");
-            //String today = format.format(now);
-            String today = "2022-4-22";
+            String today = format.format(now);
             for(int i = 0; i < dates.size(); i++) {
                 String date = (String) dates.get(i);
                 //判断今日有无更新
@@ -150,6 +152,8 @@ public class Crawler {
                             System.out.println("post send success, TaskId: " + taskResponse.getData().getTaskId());
                             redis.set(String.valueOf(taskResponse.getData().getTaskId()), id);
                             System.out.println(taskResponse.getData().getTaskId() + " -----> " + id);
+
+                            updated = true;
                         }
                     }
                 }
@@ -158,7 +162,21 @@ public class Crawler {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            lock.unlock();
         }
+    }
+
+    @Scheduled(cron = "0 0 10 * * ?")
+    public void Craw() {
+        lock.lock();
+        System.out.println("updating.........");
+        String mainURL = mainURLPattern.replace("{type}", type.toString())
+                .replace("{page}", "1");
+        String mainPage = getPage(mainURL);
+        document = new JXDocument(mainPage);
+        updated = false;
+        lock.unlock();
     }
 
     public static class UAReader {

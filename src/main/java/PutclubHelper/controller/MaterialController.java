@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class MaterialController {
 
     @Autowired
-    RedisCacheManager redisClient;
+    private RedisCacheManager redisClient;
     @Autowired
     MaterialService materialService;
 
@@ -29,7 +29,8 @@ public class MaterialController {
 
     @GetMapping("/{id}")
     public Response<Materials> getMaterial(@PathVariable("id") String id) {
-        Materials material = materialService.get(id);
+        Materials material = materialService.getMaterialById(id);
+        System.out.println(material);
         return new Response<>(200, "ok", material);
     }
 }

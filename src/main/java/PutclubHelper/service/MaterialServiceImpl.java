@@ -19,7 +19,7 @@ public class MaterialServiceImpl implements MaterialService{
     }
 
     @Override
-    public Materials get(String id) {
+    public Materials getMaterialById(String id) {
         return mapper.getMaterialById(id);
     }
 

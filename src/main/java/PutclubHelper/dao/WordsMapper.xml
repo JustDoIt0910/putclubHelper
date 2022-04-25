@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="PutclubHelper.dao.WordsMapper">
+    <insert id="addWords" parameterType="PutclubHelper.pojo.Words">
+        insert into putclubhelper.words (word, explanation, materialId, position) values
+        <foreach collection="list" separator="," item="item">
+            (#{item.word}, #{item.explanation}, #{item.materialId}, #{item.position})
+        </foreach>
+    </insert>
+
+    <select id="getWordsByMaterialId" resultType="PutclubHelper.pojo.Words">
+        select * from putclub.words where materialId = #{mid}
+    </select>
+</mapper>
